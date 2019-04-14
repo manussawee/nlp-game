@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  backend:
+    build:
+      context: backend
+    ports:
+      - 4000:4000
+      - 4001:4001
+
+  frontend:
+    build:
+      context: frontend
+    ports:
+      - 80:5000
