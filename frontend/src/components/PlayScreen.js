@@ -226,7 +226,7 @@ const WordScreen = ({
                 >{word}</CorrectWord>
               )}
             </PlayGround>
-            <InvisibleInput ref={inputRef} value="" onChange={e => onType(e.target.value)} />
+            <InvisibleInput autoFocus ref={inputRef} value="" onChange={e => onType(e.target.value)} />
           </OuterGroud>
           {myPlayer.finishedAt && enemyPlayer.finishedAt && (
             <ResultBlock win={myScore < enemyScore}>{myScore < enemyScore ? 'ชนะ' : 'แพ้'}</ResultBlock>
