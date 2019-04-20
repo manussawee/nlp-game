@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import moment from 'moment';
 
@@ -183,6 +183,8 @@ const WordScreen = ({
   const focusInput = () => {
     inputRef.current.focus();
   };
+
+  useEffect(focusInput, []);
 
   const myScore = myPlayer.bonus && moment(myPlayer.finishedAt).diff(moment(game.startedAt), 'milliseconds') / 1000 + (!myPlayer.bonus.self && 5) + (myPlayer.bonus.enemy && -5);
   const enemyScore = enemyPlayer.bonus && moment(enemyPlayer.finishedAt).diff(moment(game.startedAt), 'milliseconds') / 1000 + (!enemyPlayer.bonus.self && 5) + (enemyPlayer.bonus.enemy && -5);
