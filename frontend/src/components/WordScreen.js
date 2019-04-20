@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import api from '../utils/api';
 import Input from './Input';
 import Button from './Button';
+import Hero from './Hero';
 
 const PaddingRight = styled.span`
   padding-right: 8px;
@@ -76,6 +77,12 @@ const RowBetween = styled.div`
   justify-content: space-between;
 `;
 
+const CenterBlock = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 const WordScreen = ({
   gameID,
   user,
@@ -87,7 +94,6 @@ const WordScreen = ({
   const myPlayer = (game && game.players && game.players.find(p => p.userID === user.id)) || {};
   const myWords = (myPlayer && myPlayer.words) || [];
   const enemyPlayer = (game && game.players && game.players.find(p => p.userID !== user.id)) || {};
-  
 
   useEffect(() => {
     if (gameID && user && user.id && myPlayer && !myPlayer.userID) {
@@ -142,6 +148,9 @@ const WordScreen = ({
             <CenterBold>{users[myPlayer.userID] && users[myPlayer.userID].name}</CenterBold>
             <ReadyText>{myPlayer.ready && 'พร้อม'}</ReadyText>
           </div>
+          <CenterBlock>
+            <Hero name={users[myPlayer.userID] && users[myPlayer.userID].hero} />
+          </CenterBlock>
           <ReadyButton disabled={myWords.length < 3} onClick={() => myWords.length === 3 && setReady(!myPlayer.ready)}>{myPlayer.ready ? 'ยังไม่พร้อม' : 'พร้อมแล้ว'}</ReadyButton>
         </Col>
         <Col>
@@ -149,6 +158,9 @@ const WordScreen = ({
             <CenterBold>{users[enemyPlayer.userID] && users[enemyPlayer.userID].name}</CenterBold>
             <ReadyText>{enemyPlayer.ready && 'พร้อม'}</ReadyText>
           </div>
+          <CenterBlock>
+            <Hero name={users[enemyPlayer.userID] && users[enemyPlayer.userID].hero} />
+          </CenterBlock>
           <ButtonBlock />
         </Col>
       </Row>

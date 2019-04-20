@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
+import Hero from './Hero';
 import Selector from './Selector';
 import api from '../utils/api';
 
@@ -70,6 +71,12 @@ const BigButton = styled.div`
   }
 `;
 
+const CenterBlock = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 const GameSetup = ({
   user,
   setUser,
@@ -98,7 +105,11 @@ const GameSetup = ({
         <div>เลือกฮีโร่: <Selector options={heroOptions} value={hero} onChange={editUser} /></div>
       </div>
       <Row>
-        <Col>{hero}</Col>
+        <Col>
+          <CenterBlock>
+            <Hero name={hero} />
+          </CenterBlock>
+        </Col>
         <Col>
           <BigButton onClick={createMatch}>สร้างห้องแข่ง</BigButton>
           <BigButton onClick={autoJoin}>หาห้องแข่ง</BigButton>

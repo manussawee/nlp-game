@@ -25,7 +25,6 @@ const { randomString } = require('./utils');
 dotenv.config();
 
 const WORD_NUM = process.env.WORD_NUM || 3;
-const COLDDOWN_TIME = process.env.COLDDOWN_TIME || 3000;
 const engine = {
   users: {},
   games: {},
@@ -61,21 +60,33 @@ const setGameState = async (gameID, state) => {
     else if (state === 'READY') {
       let firstIndex = Math.floor(Math.random() * WORD_NUM);
       let secondIndex = Math.floor(Math.random() * WORD_NUM);
-      while (game.players[0].words[firstIndex] == game.players[1].words[secondIndex]) {
+      while (
+        game.players[0].words[firstIndex].indexOf(game.players[1].words[secondIndex]) >= 0
+        || game.players[1].words[firstIndex].indexOf(game.players[0].words[secondIndex]) >= 0
+      ) {
         firstIndex = Math.floor(Math.random() * WORD_NUM);
         secondIndex = Math.floor(Math.random() * WORD_NUM);
       }
-      const words = await nlp.getParagraph(game.players[0].words[firstIndex], game.players[1].words[secondIndex]);
+      game.readiedAt = moment().toISOString();
+      const rndIndex = Math.random() * 2 > 1 ? 0 : 1;
+      const words = await nlp.getParagraph(game.players[rndIndex].words[firstIndex], game.players[rndIndex === 1 ? 0 : 1].words[secondIndex]);
+      let isFirst = false, isSecond = false;
       game.paragraph = words.map(word => {
         let bonus = -1;
-        if (game.players[0].words[firstIndex] === word) bonus = 0;
-        else if (game.players[1].words[secondIndex] === word) bonus = 1;
+        if (!isFirst && game.players[0].words[firstIndex] === word) {
+          bonus = 0;
+          isFirst = true;
+        }
+        else if (!isSecond && game.players[1].words[secondIndex] === word) {
+          bonus = 1;
+          isSecond = true;
+        }
         return {
           word,
           bonus,
         };
       });
-      game.readiedAt = moment().toISOString();
+      setGameState(gameID, 'PLAY');
     }
     emitGame(gameID);
   }
@@ -127,7 +138,7 @@ const getUser = (userID) => {
 
 const editUser = (userID, name, hero) => {
   if (engine.users[userID]) {
-    engine.users[userID] = { name, hero };
+    engine.users[userID] = { id: userID, name, hero };
     return 'OK';
   }
   return 'ERROR';
@@ -165,9 +176,6 @@ const setPlayerReady = (gameID, userID, ready) => {
         && game.players[1].ready
       ) {
         setGameState(gameID, 'READY');
-        setTimeout(() => {
-          setGameState(gameID, 'PLAY');
-        }, COLDDOWN_TIME);
       }
       emitGame(gameID);
       return 'OK';

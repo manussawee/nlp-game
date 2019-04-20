@@ -1,24 +1,41 @@
-const dummy = 'ลอง|หยุด|คิด|เรื่อง|ลดน้ำหนัก|แล้ว|เปลี่ยน|มา|ดูแล|สุขภาพ|อย่างจริงจัง| |และ|ปล่อย|ให้|น้ำหนัก|ที่|ลดลง|เป็นผล|พลอย|ได้| |กิน|อาหาร|เพื่อ|สุขภาพ| |กิน|สลัด| |กิน|ผัก|ผลไม้|ให้|มากขึ้น| |กิน|อาหาร|เมื่อ|เรา|หิว|จริงๆ| |และ|ปล่อย|ให้|ร่างกาย|ได้|หยุดพัก|บ้าง'; // |ออกไป|วิ่ง|เพื่อให้|ร่างกาย|แข็งแรง| |ทำให้|สมอง|ปลอดโปร่ง| |ทำให้|คิดได้|ดีขึ้น| |ค่อยๆ| |ฝึก|โดย|เพิ่ม|ความเร็ว| |เพิ่ม|ระยะเวลา|ทีละ|นิด| |มัน|จะทำ|ให้|เรา|มี|แรงใจ|ที่จะ|วิ่ง|ต่อ| |และ|ทำให้|วิ่ง|ได้ดี|ขึ้น| |ไป|อย่าง|ช้าๆ| |จะทำ|ให้|เรา|ไป|ได้|ไกล|มากขึ้น';
+const axios = require('axios');
+const config = require('./config');
 
-const convert = (text) => {
-  const paragrah = [];
-  let tmp = '';
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] == '|') {
-      paragrah.push(tmp);
-      tmp = '';
+const getParagraph = async (firstWord, secondWord) => {
+  const { data } = await axios.get(`${config.nlpAPI}/generateDocument`, {
+    params: {
+      text1: firstWord,
+      text2: secondWord,
+    },
+  });
+  const words = data.split(' ');
+  const newWords = [];
+  let wordIndex = 0;
+  words.forEach(word => {
+    if (wordIndex === firstWord.indexOf(word)) {
+      if (wordIndex === 0) newWords.push(word);
+      else newWords[newWords.length - 1] += word;
+      wordIndex += word.length;
+    } else {
+      newWords.push(word);
+      wordIndex = 0;
     }
-    else {
-      tmp += text[i];
-    }
-  }
-  paragrah.push(tmp);
-  return paragrah
-};
+  });
 
-const getParagraph = (firstWord, secondWord) => {
-  const words = convert(dummy);
-  return [secondWord, ...words, firstWord];
+  const newWords2 = [];
+  let wordIndex2 = 0;
+  newWords.forEach(word => {
+    if (wordIndex2 === secondWord.indexOf(word)) {
+      if (wordIndex2 === 0) newWords2.push(word);
+      else newWords2[newWords2.length - 1] += word;
+      wordIndex2 += word.length;
+    } else {
+      newWords2.push(word);
+      wordIndex2 = 0;
+    }
+  });
+
+  return newWords2;
 };
 
 module.exports = {

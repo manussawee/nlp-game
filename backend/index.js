@@ -5,6 +5,7 @@ const cors = require('cors');
 const config = require('./src/config');
 const router = require('./src/router');
 const session = require('./src/session');
+const nlp = require('./src/nlp');
 
 const app = express();
 

@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import moment from 'moment';
 
 import api from '../utils/api';
+import Hero from './Hero';
 
 const Content = styled.div`
   width: 800px;
@@ -14,12 +15,61 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   padding: 32px;
+  justify-content: space-between;
 `;
 
 const Row = styled.div`
   display: flex;
   width: 100%;
-  height: 100%;
+  height: ${props => props.height || 'auto'};
+  padding-right: ${props => props.paddingRight || 'initial'};
+  box-sizing: border-box;
+`;
+
+const shakeAnimation = keyframes`
+  0% {
+    margin-top: 0;
+  }
+  10% {
+    margin-top: 0px;
+    margin-left: -5px;
+  }
+  20% {
+    margin-top: -5px;
+    margin-left: -5px;
+  }
+  30% {
+    margin-top: 5px;
+    margin-left: 5px;
+  }
+  40% {
+    margin-top: 10px;
+    margin-left: 0px;
+  }
+  50% {
+    margin-top: 5px;
+    margin-left: 10px;
+  }
+  60% {
+    margin-top: 0px;
+    margin-left: 10px;
+  }
+  70% {
+    margin-top: 0px;
+    margin-left: 0px;
+  }
+  80% {
+    margin-top: -10px;
+    margin-left: 0px;
+  }
+  90% {
+    margin-top: 0px;
+    margin-left: 10px;
+  }
+  100% {
+    margin-top: 5px;
+    margin-left: -5px;
+  }
 `;
 
 const Col = styled.div`
@@ -31,11 +81,13 @@ const Col = styled.div`
   padding: 16px;
   box-sizing: border-box;
   align-items: center;
+
 `;
 
 const OuterGroud = styled.div`
   width: 100%;
   position: relative;
+  animation: ${shakeAnimation} ${props => props.shake ? '0.17s' : '0s'} infinite;
 `;
 
 const PlayGround = styled.div`
@@ -43,12 +95,14 @@ const PlayGround = styled.div`
   top: 0;
   left: 0;
   font-size: 18px;
+  width: 380px;
 `;
 
 const CorrectWord = styled.span`
   text-decoration: underline;
   ${props => props.myWord && 'color: blue;'};
   ${props => props.enemyWord && 'color: red;'};
+  margin-right: 4px;
 `;
 
 const BlankWord = styled(CorrectWord)`
@@ -67,6 +121,19 @@ const ResultBlock = styled.div`
   font-size: 72px;
 `;
 
+const Lane = styled.div`
+  width: 100%;
+  position: relative;
+  text-align: center;
+`;
+
+const HeroContainer = styled.div`
+  position: absolute;
+  top: 0%;
+  left: ${props => props.left};
+  transition: left 0.35s;
+`;
+
 const WordScreen = ({
   gameID,
   user,
@@ -74,6 +141,7 @@ const WordScreen = ({
   users,
   socket,
 }) => {
+  const [shake, setShake] = useState(false);
   const [word, setWord] = useState('');
   const [ok, setOk] = useState(true);
   const inputRef = useRef();
@@ -104,6 +172,10 @@ const WordScreen = ({
         }
       } else {
         setOk(false);
+        setShake(true);
+        setTimeout(() => {
+          setShake(false);
+        }, 500, setShake);
       }
     }
   };
@@ -117,35 +189,39 @@ const WordScreen = ({
 
   return (
     <Content onClick={focusInput}>
-      <Row>
+      <Row height="240px" paddingRight="60px">
         <Col>
-          <OuterGroud>
+          <Lane>
+            <HeroContainer left={((myPlayer.passIndex / game.paragraph.length) * 100) + "%"}>
+              <Hero play name={users[myPlayer.userID] && users[myPlayer.userID].hero} />
+              <div>{users[myPlayer.userID] && users[myPlayer.userID].name}</div>
+            </HeroContainer>
+          </Lane>
+          <Lane>
+            <HeroContainer left={((enemyPlayer.passIndex / game.paragraph.length) * 100) + "%"}>
+              <Hero play name={users[enemyPlayer.userID] && users[enemyPlayer.userID].hero} />
+              <div>{users[enemyPlayer.userID] && users[enemyPlayer.userID].name}</div>
+            </HeroContainer>
+          </Lane>
+        </Col>
+      </Row>
+      <Row height="240px">
+        <Col>
+          <OuterGroud shake={shake}>
             <PlayGround>
-              {game.paragraph.filter((p, index) => true).map(p => (
-                <BlankWord
+              {game.paragraph.filter((p, index) => index >= myPlayer.passIndex).map((p, index) => (
+                <BlankWord key={`${p.word}${index}`}
                   myWord={p.bonus !== -1 && p.bonus === myIndex}
                   enemyWord={p.bonus !== -1 && p.bonus !== myIndex}
-                >
-                  {p.word}
-                </BlankWord>
+                >{p.word}</BlankWord>
               ))}
             </PlayGround>
             <PlayGround>
-              {game.paragraph.filter((p, index) => index < myPlayer.passIndex && true).map(p => (
-                <CorrectWord
-                  myWord={p.bonus !== -1 && p.bonus === myIndex}
-                  enemyWord={p.bonus !== -1 && p.bonus !== myIndex}
-                >
-                  {p.word}
-                </CorrectWord>
-              ))}
               {myPlayer.passIndex < game.paragraph.length && (
                 <CorrectWord
                   myWord={game.paragraph[myPlayer.passIndex].bonus !== -1 && game.paragraph[myPlayer.passIndex].bonus === myIndex}
                   enemyWord={game.paragraph[myPlayer.passIndex].bonus !== -1 && game.paragraph[myPlayer.passIndex].bonus !== myIndex}
-                >
-                  {word}
-                </CorrectWord>
+                >{word}</CorrectWord>
               )}
             </PlayGround>
             <InvisibleInput ref={inputRef} value="" onChange={e => onType(e.target.value)} />
@@ -166,24 +242,12 @@ const WordScreen = ({
         </Col>
         <Col>
           <OuterGroud>
-          <PlayGround>
-              {game.paragraph.filter((p, index) => true).map(p => (
-                <BlankWord
-                  myWord={p.bonus !== -1 && p.bonus === enemyIndex}
-                  enemyWord={p.bonus !== -1 && p.bonus !== enemyIndex}
-                >
-                  {p.word}
-                </BlankWord>
-              ))}
-            </PlayGround>
             <PlayGround>
-              {game.paragraph.filter((p, index) => index < enemyPlayer.passIndex && true).map(p => (
-                <CorrectWord
+              {game.paragraph.filter((p, index) => index >= enemyPlayer.passIndex).map((p, index) => (
+                <BlankWord key={`${p.word}${index}`}
                   myWord={p.bonus !== -1 && p.bonus === enemyIndex}
                   enemyWord={p.bonus !== -1 && p.bonus !== enemyIndex}
-                >
-                  {p.word}
-                </CorrectWord>
+                >{p.word}</BlankWord>
               ))}
             </PlayGround>
           </OuterGroud>
